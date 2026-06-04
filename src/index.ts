@@ -72,23 +72,32 @@ async function main() {
 
   const twitchClient = createTwitchClient(twitchConfig);
 
+  const bypassStreamCheck = process.env.BYPASS_STREAM_CHECK === 'true';
+
   setupMessageHandler(
     twitchClient,
     async (msg) => {
+      console.log(`Message received from ${msg.user} on ${msg.channel}: "${msg.message}"`);
+
       if (msg.message.trim() === 'tts') {
         return ttsManager.handleTtsCommand(msg);
       }
 
-      if (!streamChecker.isLive(msg.channel)) {
+      if (!bypassStreamCheck && !streamChecker.isLive(msg.channel)) {
+        console.log(`Blocked: stream is offline for ${msg.channel}`);
         return null;
       }
 
+      console.log(`Processing message from ${msg.user}: "${msg.message}"`);
       const userContext = context.getContext(msg.user);
       const response = await groq.generateResponse(msg.message, userContext);
 
       if (response) {
         context.addToContext(msg.user, { role: 'user', content: msg.message });
         context.addToContext(msg.user, { role: 'assistant', content: response });
+        console.log(`Responding to ${msg.user}: "${response}"`);
+      } else {
+        console.log(`No response generated for ${msg.user} (rate limit or error)`);
       }
 
       if (response && ttsManager.isEnabled(msg.channel)) {
