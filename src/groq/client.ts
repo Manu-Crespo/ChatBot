@@ -27,7 +27,7 @@ async function loadSystemPrompt(): Promise<string> {
 
 export async function createGroqClient(config: GroqConfig) {
   const groq = new Groq({ apiKey: config.apiKey });
-  const model = config.model ?? 'llama3-8b-8192';
+  const model = config.model ?? 'llama-3.1-8b-instant';
   const systemPrompt = await loadSystemPrompt();
 
   async function generateResponse(userMessage: string, context: Message[]): Promise<string | null> {

@@ -21,7 +21,7 @@ async function main() {
   } = process.env;
 
   const PORT = parseInt(PORT_STR ?? '10000', 10);
-  const GROQ_MODEL = process.env.GROQ_MODEL ?? 'llama3-8b-8192';
+  const GROQ_MODEL = process.env.GROQ_MODEL ?? 'llama-3.1-8b-instant';
 
   if (!GROQ_API_KEY || !TWITCH_USERNAME || !TWITCH_OAUTH_TOKEN || !TWITCH_CHANNELS) {
     console.error('Missing required environment variables');
