@@ -1,4 +1,4 @@
-import Client from 'tmi.js';
+import { Client } from 'tmi.js';
 
 export interface TwitchConfig {
   username: string;

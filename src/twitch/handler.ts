@@ -1,4 +1,4 @@
-import type Client from 'tmi.js';
+import type { Client } from 'tmi.js';
 import type { ChatMessage } from './client.js';
 import { parseCommand } from './commands.js';
 import { canSendMessage, registerSentMessage } from './ratelimiter.js';

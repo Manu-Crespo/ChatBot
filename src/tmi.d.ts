@@ -29,5 +29,5 @@ declare module 'tmi.js' {
     on(event: string, listener: (...args: unknown[]) => void): this;
   }
 
-  export default Client;
+  export { Client };
 }
