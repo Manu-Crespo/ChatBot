@@ -18,7 +18,7 @@ export interface StreamState {
 
 export function createStreamChecker(config: StreamCheckerConfig) {
   let token: TwitchAppToken | null = null;
-  let fallbackMode = false;
+  let fallbackMode = !config.clientId || !config.clientSecret;
   let liveChannels = new Set<string>();
   let pollTimer: ReturnType<typeof setInterval> | null = null;
   let onStreamStart: ((channel: string) => void) | null = null;
