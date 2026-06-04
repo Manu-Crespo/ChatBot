@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: charlie-bot
+    env: node
+    buildCommand: pnpm install && pnpm build
+    startCommand: pnpm start
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: TWITCH_USERNAME
+        sync: false
+      - key: TWITCH_OAUTH_TOKEN
+        sync: false
+      - key: TWITCH_CHANNELS
+        sync: false
+      - key: TWITCH_CLIENT_ID
+        sync: false
+      - key: TWITCH_CLIENT_SECRET
+        sync: false
+      - key: PORT
+        value: "10000"

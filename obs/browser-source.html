@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Charlie Bot TTS</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: transparent; }
+  </style>
+</head>
+<body>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const channel = params.get('channel');
+    if (!channel) {
+      document.body.textContent = 'Error: channel parameter required';
+      throw new Error('channel parameter required');
+    }
+
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${location.host}/tts?channel=${encodeURIComponent(channel)}`;
+    const ws = new WebSocket(wsUrl);
+
+    let synth = window.speechSynthesis;
+    let utterance = null;
+
+    ws.addEventListener('message', (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type !== 'tts') return;
+
+      if (synth.speaking) {
+        synth.cancel();
+      }
+
+      utterance = new SpeechSynthesisUtterance(data.text);
+      utterance.lang = 'es-ES';
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
+      synth.speak(utterance);
+    });
+
+    ws.addEventListener('close', () => {
+      console.log('TTS WebSocket closed');
+    });
+
+    ws.addEventListener('error', (err) => {
+      console.error('TTS WebSocket error:', err);
+    });
+  </script>
+</body>
+</html>
