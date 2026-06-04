@@ -56,6 +56,7 @@ export async function createGroqClient(config: GroqConfig) {
           continue;
         }
 
+        console.error(`Groq API error (attempt ${attempt}):`, err instanceof Error ? err.message : String(err));
         return null;
       }
     }
