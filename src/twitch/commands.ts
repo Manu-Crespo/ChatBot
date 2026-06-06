@@ -1,4 +1,4 @@
-const BOT_PREFIX = '!bot';
+const BOT_PREFIX = '@bot';
 
 export interface ParsedCommand {
   isBotCommand: boolean;
