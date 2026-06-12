@@ -20,6 +20,8 @@ export function createTavilyClient(apiKey?: string) {
         searchDepth: 'advanced',
         includeAnswer: 'advanced',
         maxResults: 5,
+        topic: 'news',
+        timeRange: 'week',
       });
 
       const results = response.results.map((r) => ({

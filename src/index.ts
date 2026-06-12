@@ -100,28 +100,23 @@ async function main() {
         const searchResult = await tavily.search(query);
 
         if (searchResult?.text) {
-          const introPhrases = [
-            '¡Por las barbas de Neptuno! Esto encontré:',
-            '¡Ahoy! Los vientos me trajeron esta información:',
-            'Escuchá bien, marinero. Esto dice la red:',
-            '¡Válgame el cielo! Mis fuentes dicen:',
-          ];
-          const intro = introPhrases[Math.floor(Math.random() * introPhrases.length)];
-          const resultLines = searchResult.results
+          const dataPreview = searchResult.results
             .filter((r) => r.content.length > 0)
-            .slice(0, 3)
-            .map((r) => `• ${r.content}`)
-            .join('\n');
-          const response = `${intro}\n\n${searchResult.answer}\n${resultLines}`;
+            .slice(0, 2)
+            .map((r) => r.content.slice(0, 200))
+            .join(' || ');
+          const summaryPrompt = `Resumí en 2 líneas con tono pirata estos datos de internet. NO uses tu conocimiento, SOLO lo que está acá:\n\n${searchResult.answer} ${dataPreview}`;
+          const response = await groq.generateResponse(summaryPrompt, []);
+          const cleanResponse = response ?? `*¡Agh!* Los vientos no trajeron información clara sobre "${query}".`;
 
           context.addToContext(msg.user, { role: 'user', content: `${msg.user} buscó en internet: ${query}` });
-          context.addToContext(msg.user, { role: 'assistant', content: response });
-          console.log(`Responding to ${msg.user}: with direct Tavily data`);
+          context.addToContext(msg.user, { role: 'assistant', content: cleanResponse });
+          console.log(`Responding to ${msg.user}: summarized Tavily data`);
 
           if (ttsManager.isEnabled(msg.channel)) {
-            ttsServer.sendTts(msg.channel, response);
+            ttsServer.sendTts(msg.channel, cleanResponse);
           }
-          return response;
+          return cleanResponse;
         }
 
         const fallbackMsg = `*¡Agh!* No encontré información sobre eso, Capitán. Hasta el Kraken tiene días malos.`;
