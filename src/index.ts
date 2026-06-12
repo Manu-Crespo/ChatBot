@@ -90,10 +90,11 @@ async function main() {
 
       console.log(`Processing message from ${msg.user}: "${msg.message}"`);
       const userContext = context.getContext(msg.user);
-      const response = await groq.generateResponse(msg.message, userContext);
+      const messageWithUser = `${msg.user} dice: ${msg.message}`;
+      const response = await groq.generateResponse(messageWithUser, userContext);
 
       if (response) {
-        context.addToContext(msg.user, { role: 'user', content: msg.message });
+        context.addToContext(msg.user, { role: 'user', content: messageWithUser });
         context.addToContext(msg.user, { role: 'assistant', content: response });
         console.log(`Responding to ${msg.user}: "${response}"`);
       } else {

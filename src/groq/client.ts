@@ -2,10 +2,25 @@ import Groq from 'groq-sdk';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const SYSTEM_PROMPT_PATH = resolve('prompts/charlie.md');
-const MAX_CHARS = 200;
+const SYSTEM_PROMPT_PATH = resolve('prompts/Davy.md');
+const MAX_CHARS = 250;
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 1000;
+
+function truncateResponse(content: string, maxChars: number): string {
+  if (content.length <= maxChars) return content;
+
+  // Truncar al límite y buscar el último espacio para no cortar palabras
+  const truncated = content.slice(0, maxChars);
+  const lastSpace = truncated.lastIndexOf(' ');
+
+  if (lastSpace > 0) {
+    return truncated.slice(0, lastSpace);
+  }
+
+  // Último recurso: palabra única más larga que el límite
+  return truncated;
+}
 
 export interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -47,7 +62,7 @@ export async function createGroqClient(config: GroqConfig) {
         });
 
         const content = completion.choices[0]?.message?.content ?? '';
-        return content.slice(0, MAX_CHARS);
+        return truncateResponse(content, MAX_CHARS);
       } catch (err: unknown) {
         const isRateLimit = err instanceof Error && (err.message.includes('rate_limit') || err.message.includes('429'));
 
