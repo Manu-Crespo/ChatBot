@@ -17,9 +17,9 @@ export function createTavilyClient(apiKey?: string) {
 
     try {
       const response = await client.search(query, {
-        searchDepth: 'basic',
-        includeAnswer: 'basic',
-        maxResults: 3,
+        searchDepth: 'advanced',
+        includeAnswer: 'advanced',
+        maxResults: 5,
       });
 
       const results = response.results.map((r) => ({

@@ -100,18 +100,25 @@ async function main() {
         const searchResult = await tavily.search(query);
 
         if (searchResult?.text) {
-          const searchPrompt = `DATOS ACTUALES DE INTERNET: ${searchResult.text}
+          const introPhrases = [
+            '¡Por las barbas de Neptuno! Esto encontré:',
+            '¡Ahoy! Los vientos me trajeron esta información:',
+            'Escuchá bien, marinero. Esto dice la red:',
+            '¡Válgame el cielo! Mis fuentes dicen:',
+          ];
+          const intro = introPhrases[Math.floor(Math.random() * introPhrases.length)];
+          const resultLines = searchResult.results
+            .filter((r) => r.content.length > 0)
+            .slice(0, 3)
+            .map((r) => `• ${r.content}`)
+            .join('\n');
+          const response = `${intro}\n\n${searchResult.answer}\n${resultLines}`;
 
-Basándote ESTRICTAMENTE en esos datos, respondé a esta pregunta de forma DIRECTA con la información primero y el toque de personaje después.
+          context.addToContext(msg.user, { role: 'user', content: `${msg.user} buscó en internet: ${query}` });
+          context.addToContext(msg.user, { role: 'assistant', content: response });
+          console.log(`Responding to ${msg.user}: with direct Tavily data`);
 
-Pregunta de ${msg.user}: "${query}"`;
-          const response = await groq.generateResponse(searchPrompt, userContext);
-          if (response) {
-            context.addToContext(msg.user, { role: 'user', content: `${msg.user} buscó en internet: ${query}` });
-            context.addToContext(msg.user, { role: 'assistant', content: response });
-            console.log(`Responding to ${msg.user}: "${response}"`);
-          }
-          if (response && ttsManager.isEnabled(msg.channel)) {
+          if (ttsManager.isEnabled(msg.channel)) {
             ttsServer.sendTts(msg.channel, response);
           }
           return response;
