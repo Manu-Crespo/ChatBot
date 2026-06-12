@@ -100,8 +100,9 @@ async function main() {
         const searchResult = await tavily.search(query);
 
         if (searchResult?.answer) {
-          const searchPrompt = `${msg.user} preguntó: "${query}". Usando información de internet, responde: ${searchResult.answer}`;
-          const response = await groq.generateResponse(searchPrompt, userContext);
+          const searchPrompt = `Pregunta de ${msg.user}: "${query}"`;
+          const systemExtra = `INFORMACIÓN ACTUAL DESDE INTERNET:\n${searchResult.answer}\n\nIGNORA tu conocimiento previo. Responde basándote ESTRICTAMENTE en esta información. Si tu entrenamiento dice otra cosa, la información de internet es la correcta.`;
+          const response = await groq.generateResponse(searchPrompt, userContext, systemExtra);
           if (response) {
             context.addToContext(msg.user, { role: 'user', content: `${msg.user} buscó en internet: ${query}` });
             context.addToContext(msg.user, { role: 'assistant', content: response });

@@ -56,9 +56,9 @@ export async function createGroqClient(config: GroqConfig) {
   const model = config.model ?? 'llama-3.1-8b-instant';
   const systemPrompt = await loadSystemPrompt();
 
-  async function generateResponse(userMessage: string, context: Message[]): Promise<string | null> {
+  async function generateResponse(userMessage: string, context: Message[], systemExtra?: string): Promise<string | null> {
     const messages: Message[] = [
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: systemExtra ? `${systemPrompt}\n\n${systemExtra}` : systemPrompt },
       ...context,
       { role: 'user', content: userMessage },
     ];
