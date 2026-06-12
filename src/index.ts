@@ -8,6 +8,7 @@ import { createHealthServer } from './health/server.js';
 import { createHeartbeatPinger } from './health/heartbeat.js';
 import { createTtsServer } from './tts/server.js';
 import { createTtsManager } from './tts/manager.js';
+import { createTavilyClient } from './search/tavily.js';
 
 async function main() {
   const {
@@ -17,6 +18,7 @@ async function main() {
     TWITCH_CHANNELS,
     TWITCH_CLIENT_ID,
     TWITCH_CLIENT_SECRET,
+    TAVILY_API_KEY,
     PORT: PORT_STR,
   } = process.env;
 
@@ -40,6 +42,7 @@ async function main() {
   const groq = await createGroqClient({ apiKey: GROQ_API_KEY, model: GROQ_MODEL });
   const context = createContextManager();
   const ttsManager = createTtsManager();
+  const tavily = createTavilyClient(TAVILY_API_KEY);
 
   const health = createHealthServer(PORT);
   const ttsServer = createTtsServer(health.server);
@@ -88,8 +91,45 @@ async function main() {
         return null;
       }
 
-      console.log(`Processing message from ${msg.user}: "${msg.message}"`);
       const userContext = context.getContext(msg.user);
+      const searchMatch = msg.message.match(/^(?:busca|search)\s+(.+)/i);
+
+      if (searchMatch && tavily.isAvailable) {
+        const query = searchMatch[1];
+        console.log(`Search request from ${msg.user}: "${query}"`);
+        const searchResult = await tavily.search(query);
+
+        if (searchResult?.answer) {
+          const searchPrompt = `${msg.user} preguntó: "${query}". Usando información de internet, responde: ${searchResult.answer}`;
+          const response = await groq.generateResponse(searchPrompt, userContext);
+          if (response) {
+            context.addToContext(msg.user, { role: 'user', content: `${msg.user} buscó en internet: ${query}` });
+            context.addToContext(msg.user, { role: 'assistant', content: response });
+            console.log(`Responding to ${msg.user}: "${response}"`);
+          }
+          if (response && ttsManager.isEnabled(msg.channel)) {
+            ttsServer.sendTts(msg.channel, response);
+          }
+          return response;
+        }
+
+        const fallbackMsg = `*¡Agh!* No encontré información sobre eso, Capitán. Hasta el Kraken tiene días malos.`;
+        context.addToContext(msg.user, { role: 'user', content: `${msg.user} buscó en internet: ${query}` });
+        context.addToContext(msg.user, { role: 'assistant', content: fallbackMsg });
+        console.log(`Search returned no results for ${msg.user}`);
+        if (ttsManager.isEnabled(msg.channel)) {
+          ttsServer.sendTts(msg.channel, fallbackMsg);
+        }
+        return fallbackMsg;
+      }
+
+      if (searchMatch && !tavily.isAvailable) {
+        const noKeyMsg = `*¡Agh!* No tengo acceso a internet ahora, marinero. El Capitán no configuró mi mapa del mundo.`;
+        console.log(`Search unavailable for ${msg.user}: no TAVILY_API_KEY`);
+        return noKeyMsg;
+      }
+
+      console.log(`Processing message from ${msg.user}: "${msg.message}"`);
       const messageWithUser = `${msg.user} dice: ${msg.message}`;
       const response = await groq.generateResponse(messageWithUser, userContext);
 
