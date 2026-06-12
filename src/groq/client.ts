@@ -10,10 +10,21 @@ const RETRY_DELAY_MS = 1000;
 function truncateResponse(content: string, maxChars: number): string {
   if (content.length <= maxChars) return content;
 
-  // Truncar al límite y buscar el último espacio para no cortar palabras
   const truncated = content.slice(0, maxChars);
-  const lastSpace = truncated.lastIndexOf(' ');
 
+  // Prioridad 1: último signo de puntuación que cierra una oración
+  const lastSentenceEnd = Math.max(
+    truncated.lastIndexOf('.'),
+    truncated.lastIndexOf('!'),
+    truncated.lastIndexOf('?'),
+  );
+
+  if (lastSentenceEnd > maxChars * 0.4) {
+    return truncated.slice(0, lastSentenceEnd + 1);
+  }
+
+  // Prioridad 2: último espacio (no cortar palabras)
+  const lastSpace = truncated.lastIndexOf(' ');
   if (lastSpace > 0) {
     return truncated.slice(0, lastSpace);
   }
@@ -57,7 +68,7 @@ export async function createGroqClient(config: GroqConfig) {
         const completion = await groq.chat.completions.create({
           model,
           messages,
-          max_tokens: 60,
+          max_tokens: 150,
           temperature: 0.8,
         });
 
