@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const SYSTEM_PROMPT_PATH = resolve('prompts/Davy.md');
-const MAX_CHARS = 250;
+const MAX_CHARS = 500;
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 1000;
 
@@ -68,7 +68,7 @@ export async function createGroqClient(config: GroqConfig) {
         const completion = await groq.chat.completions.create({
           model,
           messages,
-          max_tokens: 150,
+          max_tokens: 200,
           temperature: 0.8,
         });
 
